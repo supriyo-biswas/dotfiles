@@ -1,0 +1,27 @@
+#!/bin/bash
+
+dig() {
+	command dig +noall +answer "$1" "$2" | grep "\t$1\t" | sed -E $'s/\t+/ /gp' | cut -d' ' -f5 | head -n 1
+}
+
+if [[ $1 == '--help' ]] || [[ $1 == '-h' ]]; then
+	echo "Usage: $0 [HOSTNAME/IP]"
+	exit
+fi
+
+if ! echo "$1" | grep -qiEv "[a-z_-]"; then
+	ip="$(dig A "$1")"
+
+	if [[ -z $ip ]]; then
+		ip="$(dig AAAA "$1")"
+
+		if [[ -z $ip ]]; then
+			echo "Domain $1 has no A/AAAA records."
+			exit
+		fi
+	fi
+else
+	ip="$1"
+fi
+
+curl -sSf "ipinfo.io/$ip" && echo

@@ -1,0 +1,60 @@
+#!/usr/local/bin/python3
+
+import sys
+from collections import OrderedDict
+
+argv = sys.argv[1:]
+
+if not argv or argv[0] in ['-h', '--help']:
+  print('Find duplicate lines present in files.')
+  print('Usage: %s file [file ...]' % sys.argv[0])
+  sys.exit(0)
+
+dups = OrderedDict()
+rv = 0
+
+for arg in argv:
+  try:
+    dups.clear()
+    line_number = 0
+    found_dups = False
+
+    with open(arg, 'r') as file:
+      for line in file:
+        line_number += 1
+
+        if not line.strip():
+          continue
+
+        if line not in dups:
+          dups[line] = [1, [line_number]]
+        else:
+          found_dups = True
+          dups[line][0] += 1
+          if dups[line][0] <= 5:
+            dups[line][1].append(line_number)
+
+    print('%s:' % arg)
+
+    if not found_dups:
+      print('  No duplicates found.')
+      continue
+
+    for line in dups:
+      val = dups[line]
+
+      if val[0] == 1:
+        continue
+
+      print(' %s (%s duplicates, on lines ' % (line.rstrip(), val[0]), end='')
+      print(*val[1], sep=', ', end='')
+
+      if val[0] > 5:
+        print(' and %i others)' % (val[0] - 5))
+      else:
+        print(')')
+  except IOError as e:
+    sys.stderr.write('%s\n' % e)
+    rv = 1
+
+sys.exit(rv)

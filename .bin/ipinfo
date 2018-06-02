@@ -24,4 +24,4 @@ else
 	ip="$1"
 fi
 
-curl -sSf "ipinfo.io/$ip" && echo
+curl -sSf "https://ipinfo.io/$ip" && echo

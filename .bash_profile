@@ -5,6 +5,7 @@
 alias ssh="LC_CTYPE='' ssh"
 alias rsync="LC_CTYPE='' rsync"
 alias vagrant="LC_CTYPE='' vagrant"
+alias python="python3"
 
 PS1='\[\e[32m\]\w\[\e[36m\]`__git_ps1`\[\e[0m\] → '
 export PATH="$HOME/.bin:$PATH"

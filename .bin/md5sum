@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [[ $0 == "--help" || $0 == "-h" ]]; then
+	echo "Usage: $0 [FILE...]"
+	echo "Calculate the digest of a file using the MD5 algorithm"
+	exit
+fi
+
+if [[ -z $1 ]]; then
+	openssl dgst -md5 | sed 's/$/ -/'
+else
+	openssl dgst -md5 "$@" | sed -nE 's/^[^(]+\((.*)\)= (.*)/\2 \1/gp'
+fi

@@ -9,7 +9,11 @@ if [[ $1 == '--help' ]] || [[ $1 == '-h' ]]; then
 	exit
 fi
 
-if ! echo "$1" | grep -qiEv "[a-z_-]"; then
+ip="$(echo "$1" | tr A-Z a-z)"
+
+if [[ -z $ip ]] || grep -qE "^(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-f]{1,4}:)+(:?[0-9a-f]{1,4})+)$" <<< "$ip"; then
+	:
+elif grep -qE "^([a-z0-9_-]+\.)+[a-z0-9_-]+$" <<< "$ip"; then
 	ip="$(dig A "$1")"
 
 	if [[ -z $ip ]]; then
@@ -17,11 +21,12 @@ if ! echo "$1" | grep -qiEv "[a-z_-]"; then
 
 		if [[ -z $ip ]]; then
 			echo "Domain $1 has no A/AAAA records."
-			exit
+			exit 1
 		fi
 	fi
 else
-	ip="$1"
+	echo "Invalid IP address or domain."
+	exit 1
 fi
 
 curl -sSf "https://ipinfo.io/$ip" && echo

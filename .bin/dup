@@ -1,7 +1,10 @@
-#!/usr/local/bin/python3
+#!/usr/bin/env python3
 
 import sys
 from collections import OrderedDict
+from signal import signal, SIGPIPE, SIG_DFL
+
+signal(SIGPIPE, SIG_DFL)
 
 def print_dups(file):
 	line_number = 0
@@ -49,20 +52,23 @@ if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help']:
 args = sys.argv[1:]
 rv = 0
 
-if not args:
-	try:
-		print_dups(sys.stdin)
-	except IOError as e:
-		sys.stderr.write('%s\n' % e)
-		rv = 1
-else:
-	try:
-		for arg in args:
-			with open(arg, 'r') as f:
-				for arg in args:
-					print_dups(f)
-	except IOError as e:
-		sys.stderr.write('%s\n', e)
-		rv = 1
+try:
+	if not args:
+		try:
+			print_dups(sys.stdin)
+		except IOError as e:
+			sys.stderr.write('%s\n' % e)
+			rv = 1
+	else:
+		try:
+			for arg in args:
+				with open(arg, 'r') as f:
+					for arg in args:
+						print_dups(f)
+		except IOError as e:
+			sys.stderr.write('%s\n' % e)
+			rv = 1
+except KeyboardInterrupt:
+	pass
 
 sys.exit(rv)

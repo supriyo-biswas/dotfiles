@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ $0 == "--help" || $0 == "-h" ]]; then
+if [[ $1 == "--help" || $1 == "-h" ]]; then
 	echo "Usage: $0 [FILE...]"
 	echo "Calculate the digest of a file using the SHA256 algorithm"
 	exit

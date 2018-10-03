@@ -1,7 +1,7 @@
 #!/bin/bash
 
 dig() {
-	command dig +noall +answer "$1" "$2" | grep "\t$1\t" | sed -E $'s/\t+/ /gp' | cut -d' ' -f5 | head -n 1
+	command dig +noall +answer "$1" "$2" | grep -E "[ \t]$1[ \t]" | sed -E $'s/\t+/ /gp' | cut -d' ' -f5 | head -n 1
 }
 
 if [[ $1 == '--help' ]] || [[ $1 == '-h' ]]; then

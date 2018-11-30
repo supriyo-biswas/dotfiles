@@ -1,7 +1,11 @@
 #!/bin/bash
 
-dig() {
-	command dig +noall +answer "$1" "$2" | grep -E "[ \t]$1[ \t]" | sed -E $'s/\t+/ /gp' | cut -d' ' -f5 | head -n 1
+is_valid_ip() {
+	grep -qE "^(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-f]{1,4}:)+(:?[0-9a-f]{1,4})+)$" <<< "$1"
+}
+
+dnsquery() {
+	dig +noall +answer "$1" "$2" | awk '{ print $5 }' | tail -n 1
 }
 
 if [[ $1 == '--help' ]] || [[ $1 == '-h' ]]; then
@@ -11,13 +15,13 @@ fi
 
 ip="$(echo "$1" | tr A-Z a-z)"
 
-if [[ -z $ip ]] || grep -qE "^(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-f]{1,4}:)+(:?[0-9a-f]{1,4})+)$" <<< "$ip"; then
+if [[ -z $ip ]] || is_valid_ip "$ip"; then
 	:
-elif grep -qE "^([a-z0-9_-]+\.)+[a-z0-9_-]+$" <<< "$ip"; then
-	ip="$(dig A "$1")"
+elif grep -qE "^([a-z0-9_-]+\.)+[a-z0-9-]+$" <<< "$ip"; then
+	ip="$(dnsquery A "$ip")"
 
 	if [[ -z $ip ]]; then
-		ip="$(dig AAAA "$1")"
+		ip="$(dnsquery AAAA "$ip")"
 
 		if [[ -z $ip ]]; then
 			echo "Domain $1 has no A/AAAA records."

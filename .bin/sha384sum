@@ -6,7 +6,7 @@ if [[ $1 == "--help" || $1 == "-h" ]]; then
 	exit
 fi
 
-if [[ -z $1 ]]; then
+if [[ -z $1 || $1 == '-' ]]; then
 	openssl dgst -sha384 | sed 's/$/ -/'
 else
 	openssl dgst -sha384 "$@" | sed -nE 's/^[^(]+\((.*)\)= (.*)/\2 \1/gp'

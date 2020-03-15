@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [[ $1 == "--help" || $1 == "-h" ]]; then
+	echo "Usage: $0 [FILE...]"
+	echo "Calculate the digest of a file using the SHA384 algorithm"
+	exit
+fi
+
+if [[ -z $1 ]]; then
+	openssl dgst -sha384 | sed 's/$/ -/'
+else
+	openssl dgst -sha384 "$@" | sed -nE 's/^[^(]+\((.*)\)= (.*)/\2 \1/gp'
+fi

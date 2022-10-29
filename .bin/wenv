@@ -1,0 +1,114 @@
+#!/usr/bin/env python
+
+import os
+import re
+import sys
+from argparse import ArgumentParser
+
+
+class CommandError(Exception):
+    pass
+
+
+def print_error(prog_name, exc):
+    message = f'{prog_name}: '
+    if isinstance(exc, OSError):
+        message += (
+            '' if exc.filename is None else f'{exc.filename}: '
+        ) + exc.strerror.lower()
+    else:
+        message += exc.args[0]
+
+    print(message, file=sys.stderr)
+
+
+def handle_escape(match):
+    text = match[1]
+    if text[0] == 'x':
+        return ord(int(text[1:], 16))
+
+    if text[0] == 'r':
+        return '\r'
+
+    if text[0] == 'n':
+        return '\n'
+
+    return text[1:]
+
+
+def unquote(s):
+    if len(s) > 1 and s[0] in '"\'' and s[0] == s[-1]:
+        return re.sub(r'\\(x[0-9]{2}|.)', s[1:-1], handle_escape)
+
+    return s
+
+
+def parse_env_file(filename):
+    result = {}
+    with open(filename) as f:
+        for line in f:
+            match = re.match(
+                r"([A-Za-z0-9_]+)\s*=\s*(\"(?:[^\\\"]+|\\.)+\"|'(?:[^\\\']+|\\.)+'|[^;#\n]+)",
+                line,
+            )
+            if match:
+                result[match[1]] = unquote(match[2])
+
+    return result
+
+
+def locate_and_parse_env_file():
+    current_path = os.getcwd()
+    while True:
+        dirname, basename = os.path.split(current_path)
+        env_file = os.path.join(dirname, basename, '.env')
+        try:
+            return parse_env_file(env_file)
+        except (FileNotFoundError, IsADirectoryError):
+            if not basename:
+                break
+            current_path = dirname
+            continue
+
+
+def which(name):
+    if os.path.isabs(name):
+        return name
+
+    path = os.environ.get(
+        'PATH', '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+    )
+    for directory in path.split(':'):
+        executable_path = os.path.join(directory, name)
+        if os.access(executable_path, os.X_OK):
+            return executable_path
+
+    raise CommandError(f'{name}: command not found')
+
+
+def main():
+    parser = ArgumentParser(
+        description='launch a program with environment variables specified in a .env file'
+    )
+    parser.add_argument('-e', '--env', help='path to the .env file')
+    parser.add_argument('command', nargs='A...', help='the command to run')
+    args = parser.parse_args()
+
+    try:
+        if args.env is not None:
+            env_vars = parse_env_file(args.env)
+        else:
+            env_vars = locate_and_parse_env_file()
+            if env_vars is None:
+                raise CommandError(
+                    'unable to locate .env file, use -e to provide a path'
+                )
+
+        os.execve(which(args.command[0]), args.command, {**os.environ, **env_vars})
+    except (OSError, CommandError) as e:
+        print_error(parser.prog, e)
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

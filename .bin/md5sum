@@ -7,7 +7,7 @@ if [[ $1 == "--help" || $1 == "-h" ]]; then
 fi
 
 if [[ -z $1 || $1 == '-' ]]; then
-	openssl dgst -md5 | sed 's/$/ -/'
+	openssl dgst -md5 "$@" | sed -nE 's/^[^(]+\((.*)\)= (.*)/\2 -/gp'
 else
 	openssl dgst -md5 "$@" | sed -nE 's/^[^(]+\((.*)\)= (.*)/\2 \1/gp'
 fi

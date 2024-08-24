@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+
+# Safe version of npx that only runs commands from the node_modules/.bin directory
+# without installing random packages from the internet.
+
+import argparse
+import os
+import sys
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Run a command from the node_modules/.bin directory.'
+    )
+    parser.add_argument('command', help='command to run')
+    parser.add_argument('args', nargs='*', help='arguments to pass to the command')
+
+    args = parser.parse_args()
+    if os.path.basename(args.command) != args.command:
+        print(f'Invalid command: {args.command}', file=sys.stderr)
+        sys.exit(1)
+
+    cwd = os.getcwd()
+    while cwd != '/':
+        bin_dir = os.path.join(cwd, f'node_modules/.bin/{args.command}')
+        if os.path.exists(bin_dir):
+            os.execv(bin_dir, [args.command] + args.args)
+        cwd = os.path.dirname(cwd)
+
+    print(f'Command not found: {args.command}', file=sys.stderr)
+    sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

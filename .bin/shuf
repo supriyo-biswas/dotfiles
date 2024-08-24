@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
+
 import sys
 import random
-from collections import OrderedDict
+import argparse
 from signal import signal, SIGPIPE, SIG_DFL
 
-signal(SIGPIPE, SIG_DFL)
 
 def shuf_and_print(f):
     lines = f.readlines()
@@ -13,30 +13,38 @@ def shuf_and_print(f):
     for line in lines:
         print(line, end='')
 
-if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help']:
-    print('Generate random permutations of lines in a file.')
-    print('Usage: %s file [file ...]' % sys.argv[0])
-    sys.exit(0)
 
-args = sys.argv[1:]
-rv = 0
+def main():
+    signal(SIGPIPE, SIG_DFL)
 
-try:
-    if not args:
-        try:
-            shuf_and_print(sys.stdin)
-        except IOError as e:
-            sys.stderr.write('%s\n' % e)
-            rv = 1
-    else:
-        try:
-            for arg in args:
-                with open(arg, 'r') as f:
-                    shuf_and_print(f)
-        except IOError as e:
-            sys.stderr.write('%s\n' % e)
-            rv = 1
-except KeyboardInterrupt:
-    pass
+    parser = argparse.ArgumentParser(
+        description='Generate random permutations of lines in a file.'
+    )
+    parser.add_argument('file', nargs='*', help='input file(s)')
+    args = parser.parse_args()
 
-sys.exit(rv)
+    rv = 0
+
+    try:
+        if not args.file:
+            try:
+                shuf_and_print(sys.stdin)
+            except IOError as e:
+                sys.stderr.write('%s\n' % e)
+                rv = 1
+        else:
+            try:
+                for file in args.file:
+                    with open(file, 'r') as f:
+                        shuf_and_print(f)
+            except IOError as e:
+                sys.stderr.write('%s\n' % e)
+                rv = 1
+    except KeyboardInterrupt:
+        pass
+
+    sys.exit(rv)
+
+
+if __name__ == '__main__':
+    main()

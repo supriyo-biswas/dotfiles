@@ -12,7 +12,6 @@ alias gowatch="nodemon -e go,toml --signal SIGTERM --exec go run . --"
 alias psql_start="/opt/homebrew/opt/postgresql@14/bin/postgres -D /opt/homebrew/var/postgresql@14"
 
 PS1='\[\e[32m\]\w\[\e[36m\]`__git_ps1`\[\e[0m\] → '
-export PATH="$HOME/go/bin:/opt/homebrew/opt/node@20/bin:/opt/homebrew/bin:/opt/homebrew/sbin:$HOME/.local/bin:$HOME/.npm-global/bin:$HOME/.bin:$PATH"
+export PATH="$HOME/.bin:$HOME/go/bin:/opt/homebrew/opt/node@20/bin:/opt/homebrew/bin:/opt/homebrew/sbin:$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
 
-# Added by OrbStack: command-line tools and integration
 source ~/.orbstack/shell/init.bash 2>/dev/null || :
